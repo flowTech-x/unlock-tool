@@ -3,7 +3,6 @@
 import subprocess
 import sys
 import os
-import platform
 import hashlib
 import random
 import time
@@ -49,20 +48,18 @@ os.system("cls" if os.name == "nt" else "clear")
 
 slot = int(input(col_g + "[Slot number (1-4)]: " + Fore.RESET))
 
-# Map slots to token lines (1&3 -> line 1, 2&4 -> line 2)
+# Map slots to token lines
 if slot in (1, 3):
     token_number = 1
 elif slot in (2, 4):
     token_number = 2
 else:
-    print("Invalid slot number")
+    print(col_r + "Invalid slot number")
     sys.exit(1)
-
 
 os.system("cls" if os.name == "nt" else "clear")
 
 scriptversion = "ARU_FHL_v070425"
-
 print(col_gb + f"{scriptversion}_token_#{token_number}")
 print(col_y + "Checking account status..." + Fore.RESET)
 
@@ -71,13 +68,9 @@ print(col_y + "Checking account status..." + Fore.RESET)
 # =========================
 
 token = linecache.getline("token.txt", token_number).strip()
-feedtime = float(linecache.getline("timeshift.txt", token_number).strip())
-
 if not token:
     print(col_r + "Invalid token line number")
     sys.exit(1)
-
-feed_time_shift_1 = feedtime / 1000
 
 # =========================
 # CONSTANTS
@@ -97,31 +90,28 @@ def generate_device_id():
     seed = f"{random.random()}-{time.time()}"
     return hashlib.sha1(seed.encode()).hexdigest().upper()
 
-# ✅ FIXED TIME FUNCTION (PC + ANDROID SAFE)
 def get_initial_beijing_time():
     beijing_tz = pytz.timezone("Asia/Shanghai")
 
-    # Try NTP first (PC / open networks)
     try:
         client = ntplib.NTPClient()
         for server in ntp_servers:
             try:
                 response = client.request(server, version=3, timeout=2)
                 ntp_time = datetime.fromtimestamp(response.tx_time, timezone.utc)
-                beijing_time = ntp_time.astimezone(beijing_tz)
+                bt = ntp_time.astimezone(beijing_tz)
                 print(col_g + "[Beijing time - NTP]: " + Fore.RESET +
-                      beijing_time.strftime("%Y-%m-%d %H:%M:%S.%f"))
-                return beijing_time
+                      bt.strftime("%Y-%m-%d %H:%M:%S.%f"))
+                return bt
             except:
                 continue
     except:
         pass
 
-    # Android-safe fallback (SYSTEM TIME)
-    beijing_time = datetime.now(timezone.utc).astimezone(beijing_tz)
+    bt = datetime.now(timezone.utc).astimezone(beijing_tz)
     print(col_y + "[Beijing time - SYSTEM]: " + Fore.RESET +
-          beijing_time.strftime("%Y-%m-%d %H:%M:%S.%f"))
-    return beijing_time
+          bt.strftime("%Y-%m-%d %H:%M:%S.%f"))
+    return bt
 
 def synced_time(start_bt, start_ts):
     return start_bt + timedelta(seconds=(time.time() - start_ts))
@@ -162,23 +152,16 @@ def main():
     start_bt = get_initial_beijing_time()
     start_ts = time.time()
 
-    print(col_y + "\nRequesting bootloader unlock..." + Fore.RESET)
-    print(col_g + "[Offset set]: " + Fore.RESET + f"{feedtime} ms")
-
-    target = (start_bt + timedelta(days=1)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    ) - timedelta(seconds=feed_time_shift_1)
-
-    print(col_g + "[Waiting until]: " + Fore.RESET +
-          target.strftime("%Y-%m-%d %H:%M:%S.%f"))
-    print("Do not close this window...\n")
-
-    while synced_time(start_bt, start_ts) < target:
-        time.sleep(0.0001)
+    print(col_y + "\n[TEST MODE] Skipping timing wait — sending request immediately...\n" + Fore.RESET)
 
     url = "https://sgp-api.buy.mi.com/bbs/api/global/apply/bl-auth"
     headers = {
-        "Cookie": f"new_bbs_serviceToken={token};versionCode=500411;versionName=5.4.11;deviceId={device_id};",
+        "Cookie": (
+            f"new_bbs_serviceToken={token};"
+            f"versionCode=500411;"
+            f"versionName=5.4.11;"
+            f"deviceId={device_id};"
+        ),
         "User-Agent": "okhttp/4.12.0",
         "Content-Type": "application/json"
     }
@@ -203,7 +186,7 @@ def main():
         print(col_b + "[Response]: " + Fore.RESET + str(data))
 
         code = data.get("code")
-        if code in [0, 100003]:
+        if code in (0, 100003):
             print(col_gb + "✔ Request processed")
             break
 
