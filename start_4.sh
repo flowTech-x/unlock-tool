@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-cd ~/storage/shared/script || exit 1
+cd ~/storage/shared/script/unlock-tool || exit 1
 
 tmux new-session -d -s mibox
 
