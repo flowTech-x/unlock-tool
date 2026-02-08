@@ -52,7 +52,7 @@ storage
 cd ~/storage/shared
 ```
 ```bash
-mkdir unlock-tool
+mkdir script
 ```
 ```bash
 cd unlock-tool
