@@ -55,7 +55,7 @@ cd ~/storage/shared
 mkdir script
 ```
 ```bash
-cd unlock-tool
+cd script
 ```
 4️⃣ Clone the repository
 ```bash
