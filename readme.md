@@ -15,6 +15,7 @@ A **phone-only automation tool** to send Xiaomi bootloader unlock requests using
 - Stable internet (**Wi-Fi recommended**)  
 - **Termux (F-Droid version only)**  
 - Firefox Browser (for cookie extraction)
+- Run the tool before 00:00 Beijing time. Check current Beijing time here: https://time.is/Beijing
 
 ❌ **Do NOT use Play Store Termux** (deprecated)
 
@@ -147,6 +148,12 @@ Slot	Token Used
 ```bash
 bash start_4.sh
 ```
+
+Important timing note:
+
+Run the tool before 00:00 Beijing time and keep Termux/tmux open.
+
+The script waits for the next Beijing midnight quota window, then sends the timed request burst automatically. If you start it after 00:00 Beijing time, it will target the next day's midnight window.
 
 
 or
